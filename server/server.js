@@ -22,6 +22,7 @@ var {
   User
 } = require('./models/user');
 
+var {authenticate1}=require('./middleware/middleware1');
 var app = express();
 const port = process.env.PORT || 3000;
 
@@ -130,6 +131,25 @@ app.post('/users', (req, res) => {
 }, (e) => {
   console.log(e);
 });
+
+app.post('/user1',(req,res)=>{
+  var body=_.pick(req.body,['email','password']);
+  var user=new User(body);
+  user.save().then(()=>{
+    return user.generateAuthToken();
+  }).then((token)=>{
+    res.header('x-auth',token).send(user);
+  }).catch((e)=>{
+    res.status(400).send(e);
+  });
+},(e)=>{
+  console.log(e);
+});
+
+app.get('/user1/me',authenticate1,(req,res)=>{
+res.send(req.user);
+});
+
 
 app.get('/users/me', authenticate, (req, res) => {
   res.send(req.user);
